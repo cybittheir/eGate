@@ -1,0 +1,7 @@
+*.json
+*.yaml
+*.exe
+*.db
+*.pem
+cert/*
+*cert
