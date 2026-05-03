@@ -3,15 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
-	"path/filepath"
 	"time"
 
 	server "github.com/emersion/go-smtp"
 
 	"eGate/config"
+	"eGate/internal/logging"
 	"eGate/proxy"
 	"eGate/version"
 )
@@ -21,7 +20,7 @@ func main() {
 	saveLogs := flag.Bool("l", false, "save logs to files (Logs/YYYYMMDD.log)")
 	silent := flag.Bool("s", false, "silent mode (no logs to console)")
 	helpFlag := flag.Bool("h", false, "show help and exit")
-
+	configPath := flag.String("config", "config.yaml", "path to config file")
 	flag.Parse()
 
 	// Текст подсказки (без логов, просто stdout)
@@ -46,7 +45,7 @@ func main() {
 	}
 
 	// Теперь настраиваем логирование
-	logFile, err := setupLogging(*saveLogs, *silent)
+	logFile, err := logging.Setup(*saveLogs, *silent)
 	if err != nil {
 		// здесь уже можно использовать log, но он может быть disacrd; на всякий случай продублируем
 		fmt.Println("Ошибка инициализации логирования:", err)
@@ -56,11 +55,9 @@ func main() {
 		defer logFile.Close()
 	}
 
-	configPath := flag.String("config", "config.yaml", "path to config file")
-	flag.Parse()
-
 	cfg, err := config.LoadConfig(*configPath)
 	if err != nil {
+		log.Printf("Config error: %v", err)
 		log.Fatalf("Config error: %v", err)
 	}
 
@@ -94,36 +91,4 @@ func main() {
 	if err := s.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func setupLogging(saveToFile, silent bool) (*os.File, error) {
-	var writers []io.Writer
-
-	if saveToFile {
-		if err := os.MkdirAll("Logs", 0755); err != nil {
-			return nil, fmt.Errorf("не удалось создать папку Logs: %w", err)
-		}
-		ts := time.Now().Format("20060102")
-		path := filepath.Join("Logs", ts+".log")
-		f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-		if err != nil {
-			return nil, fmt.Errorf("не удалось открыть лог-файл %s: %w", path, err)
-		}
-
-		if silent {
-			log.SetOutput(f)
-			return f, nil
-		}
-
-		writers = append(writers, f, os.Stdout)
-		log.SetOutput(io.MultiWriter(writers...))
-		return f, nil
-	}
-
-	if silent {
-		log.SetOutput(io.Discard)
-	} else {
-		log.SetOutput(os.Stdout)
-	}
-	return nil, nil
 }
