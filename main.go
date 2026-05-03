@@ -20,6 +20,7 @@ func main() {
 
 	saveLogs := flag.Bool("l", false, "save logs to files (Logs/YYYYMMDD.log)")
 	silent := flag.Bool("s", false, "silent mode (no logs to console)")
+	debug := flag.Bool("d", false, "debug mode (print SMTP logs to console)")
 	helpFlag := flag.Bool("h", false, "show help and exit")
 	verFlag := flag.Bool("v", false, "show version and exit")
 	configPath := flag.String("config", "config.yaml", "path to config file")
@@ -27,7 +28,7 @@ func main() {
 
 	// Текст подсказки (без логов, просто stdout)
 	helpText := fmt.Sprintf(
-		"%s\nПараметры запуска:\n  -h  вывод этой подсказки\n  -l  сохранять логи в файлы (папка Logs, имя по дате)\n  -s  тихий режим (не выводить логи в консоль)\n",
+		"%s\nПараметры запуска:\n  -h  вывод этой подсказки\n  -l  сохранять логи в файлы (папка Logs, имя по дате)\n  -d выводить протокол SMTP на экран\n  -s  тихий режим (не выводить логи в консоль)\n",
 		version.String(),
 	)
 
@@ -105,7 +106,7 @@ func main() {
 	} else {
 		// например, в stdout или вообще отключить
 		// s.Debug = os.Stdout
-		if !*silent {
+		if !*silent && *debug {
 			s.Debug = os.Stdout
 		} else {
 			s.Debug = nil
