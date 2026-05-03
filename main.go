@@ -96,7 +96,7 @@ func main() {
 	s.Domain = cfg.Local.Domain
 	s.AllowInsecureAuth = true
 
-	if logFile != nil {
+	if logFile != nil && *debug {
 		if w, ok := logFile.(io.Writer); ok {
 			s.Debug = w
 		} else {
