@@ -3,7 +3,7 @@ package version
 var (
 	Name    = "EMail Gateway Proxy"
 	Version = "0.3.0"
-	Build   = "48"
+	Build   = "52"
 )
 
 func String() string {

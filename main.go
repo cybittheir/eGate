@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"time"
@@ -20,6 +21,7 @@ func main() {
 	saveLogs := flag.Bool("l", false, "save logs to files (Logs/YYYYMMDD.log)")
 	silent := flag.Bool("s", false, "silent mode (no logs to console)")
 	helpFlag := flag.Bool("h", false, "show help and exit")
+	verFlag := flag.Bool("v", false, "show version and exit")
 	configPath := flag.String("config", "config.yaml", "path to config file")
 	flag.Parse()
 
@@ -31,6 +33,11 @@ func main() {
 
 	if *helpFlag {
 		fmt.Print(helpText)
+		return
+	}
+
+	if *verFlag {
+		fmt.Print(version.String())
 		return
 	}
 
@@ -51,9 +58,11 @@ func main() {
 		fmt.Println("Ошибка инициализации логирования:", err)
 		log.Fatal(err)
 	}
-	if logFile != nil {
-		defer logFile.Close()
-	}
+	defer func() {
+		if logFile != nil {
+			logFile.Close()
+		}
+	}()
 
 	cfg, err := config.LoadConfig(*configPath)
 	if err != nil {
@@ -85,7 +94,23 @@ func main() {
 	s.Addr = cfg.Local.Addr
 	s.Domain = cfg.Local.Domain
 	s.AllowInsecureAuth = true
-	s.Debug = os.Stdout
+
+	if logFile != nil {
+		if w, ok := logFile.(io.Writer); ok {
+			s.Debug = w
+		} else {
+			s.Debug = nil
+		}
+
+	} else {
+		// например, в stdout или вообще отключить
+		// s.Debug = os.Stdout
+		if !*silent {
+			s.Debug = os.Stdout
+		} else {
+			s.Debug = nil
+		}
+	}
 
 	log.Printf("SMTP Proxy started on %s", s.Addr)
 	if err := s.ListenAndServe(); err != nil {
