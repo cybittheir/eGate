@@ -1,0 +1,4 @@
+# change and save with filename choosed in config.yaml
+entries:
+  "127.0.0.1": 
+    password_hash: "" 
