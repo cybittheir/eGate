@@ -1,0 +1,11 @@
+# change and save as config.yaml
+local:
+  addr: "IP:use-port OR :use-port if use 127.0.0.1"
+  domain: "email-domain"
+remote:
+  host: "email-server-address"
+  port: "email-server-port"
+  user: "email-account"
+  password: "email-account-password"
+  from: "set-email-sender"
+whitelist_path: "whitelist.yaml"
